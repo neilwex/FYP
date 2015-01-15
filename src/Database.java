@@ -1,5 +1,7 @@
 import java.sql.*;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Scanner;
 
 /**
  * Created by Neil on 15/01/2015.
@@ -36,10 +38,11 @@ public class Database {
 
             // Testing methods I've created
 
-            getAllResults(stmt,rs);
-            getAverageGrade(stmt, rs, "CS101");
-            getMaxGrade(stmt, rs, "CS101");
-            getMinGrade(stmt, rs, "CS101");
+           // getAllResults(stmt,rs);
+            getAverageGrade(stmt, rs);
+            ////getAverageGrade(stmt, rs, "CS101");
+            //getMaxGrade(stmt, rs, "CS101");
+            //getMinGrade(stmt, rs, "CS101");
             getStdDev(stmt, rs, "CS101");
 
             //STEP 6: Clean-up environment
@@ -96,9 +99,27 @@ public class Database {
         r.close();
     }
 
-    public static void getAverageGrade (Statement s, ResultSet r, String module) throws SQLException {
+    //public static void getAverageGrade (Statement s, ResultSet r, String module) throws SQLException {
+    public static void getAverageGrade (Statement s, ResultSet r) throws SQLException {
         System.out.println("Calling method getAverageGrade...");
-        sql = "SELECT AVG(ca_mark + final_exam_mark) AS average FROM results WHERE module_code = \"" + module +"\"";
+        sql = "SELECT DISTINCT module_code FROM results";
+        r = s.executeQuery(sql);
+        ArrayList<String> modules = new ArrayList<String>();
+        System.out.print("Please enter an individual module. The available modules are: ");
+        while(r.next()){
+            modules.add(r.getString("module_code"));
+            System.out.print(r.getString("module_code") + " ");
+        }
+        System.out.print("\n");
+        Scanner scanner = new Scanner(System.in);
+        String selected = scanner.next();
+
+        while (! modules.contains(selected)) {
+            System.out.println("Please re-enter a valid selection: ");
+            selected = scanner.next();
+        }
+
+        sql = "SELECT AVG(ca_mark + final_exam_mark) AS average FROM results WHERE module_code = \"" + selected +"\"";
         r = s.executeQuery(sql);
         r.next();
 
@@ -112,7 +133,7 @@ public class Database {
 
     public static void getMaxGrade (Statement s, ResultSet r, String module) throws SQLException {
         System.out.println("Calling method getMaxGrade...");
-        sql = "SELECT MAX(ca_mark + final_exam_mark) as max FROM results WHERE module_code = \"" + module +"\"";
+        sql = "SELECT MAX(ca_mark + final_exam_mark) AS max FROM results WHERE module_code = \"" + module +"\"";
         r = s.executeQuery(sql);
         r.next();
 
