@@ -17,6 +17,7 @@ public class Database {
     static final String PASS = "Wexford96-";
 
     public static ResultSet rs;
+    public static String sql;
 
     public static void main(String[] args) {
         Connection conn = null;
@@ -32,37 +33,17 @@ public class Database {
             //STEP 4: Execute a query
             System.out.println("Creating statement...");
             stmt = conn.createStatement();
-            String sql;
-            sql = "SELECT * FROM results";
-            rs = stmt.executeQuery(sql);
 
+            // Testing methods I've created
 
-            //STEP 5: Extract data from result set
-            while(rs.next()){
-                //Retrieve by column name
-                String student_num  = rs.getString("student_num");
-                String module_code  = rs.getString("module_code");
-                int ca_mark = rs.getInt("ca_mark");
-                int final_exam_mark = rs.getInt("final_exam_mark");
-
-                //Display values
-                System.out.print("Student Number: " + student_num);
-                System.out.print(", Module Code: " + module_code);
-                System.out.print(", CS Mark: " + ca_mark);
-                System.out.print(", Final Exam Mark: " + final_exam_mark);
-                System.out.print(", Overall Grade: " + (ca_mark + final_exam_mark));
-                System.out.println(", Pass/Fail?: " + (ca_mark + final_exam_mark >= 40 ? "Pass" : "Fail" ));
-            }
-            rs.close();
-
-            getAverageGrade(stmt, rs,"CS101");
+            getAllResults(stmt,rs);
+            getAverageGrade(stmt, rs, "CS101");
             getMaxGrade(stmt, rs, "CS101");
             getMinGrade(stmt, rs, "CS101");
             getStdDev(stmt, rs, "CS101");
 
-
             //STEP 6: Clean-up environment
-            rs.close();
+            //rs.close();
             stmt.close();
             conn.close();
         }catch(SQLException se){
@@ -89,9 +70,35 @@ public class Database {
     }//end main
 
 
+    public static void getAllResults (Statement s, ResultSet r) throws SQLException {
+        System.out.println("Calling method getAllResults...");
+        sql = "SELECT * FROM results";
+        r = s.executeQuery(sql);
+
+        // extract data from result set
+        while(r.next()){
+            //Retrieve by column name
+            String student_num  = r.getString("student_num");
+            String module_code  = r.getString("module_code");
+            int ca_mark = r.getInt("ca_mark");
+            int final_exam_mark = r.getInt("final_exam_mark");
+
+            //Display values
+            System.out.print("Student Number: " + student_num);
+            System.out.print(", Module Code: " + module_code);
+            System.out.print(", CS Mark: " + ca_mark);
+            System.out.print(", Final Exam Mark: " + final_exam_mark);
+            System.out.print(", Overall Grade: " + (ca_mark + final_exam_mark));
+            System.out.println(", Pass/Fail?: " + (ca_mark + final_exam_mark >= 40 ? "Pass" : "Fail" ));
+        }
+
+        // close ResultSet
+        r.close();
+    }
 
     public static void getAverageGrade (Statement s, ResultSet r, String module) throws SQLException {
-        String sql = "SELECT AVG(ca_mark + final_exam_mark) AS average FROM results WHERE module_code = \"" + module +"\"";
+        System.out.println("Calling method getAverageGrade...");
+        sql = "SELECT AVG(ca_mark + final_exam_mark) AS average FROM results WHERE module_code = \"" + module +"\"";
         r = s.executeQuery(sql);
         r.next();
 
@@ -104,7 +111,8 @@ public class Database {
     }
 
     public static void getMaxGrade (Statement s, ResultSet r, String module) throws SQLException {
-        String sql = "SELECT MAX(ca_mark + final_exam_mark) as max FROM results WHERE module_code = \"" + module +"\"";
+        System.out.println("Calling method getMaxGrade...");
+        sql = "SELECT MAX(ca_mark + final_exam_mark) as max FROM results WHERE module_code = \"" + module +"\"";
         r = s.executeQuery(sql);
         r.next();
 
@@ -117,7 +125,8 @@ public class Database {
     }
 
     public static void getMinGrade (Statement s, ResultSet r, String module) throws SQLException {
-        String sql = "SELECT MIN(ca_mark + final_exam_mark) AS min FROM results WHERE module_code = \"" + module +"\"";
+        System.out.println("Calling method getMinGrade...");
+        sql = "SELECT MIN(ca_mark + final_exam_mark) AS min FROM results WHERE module_code = \"" + module +"\"";
         r = s.executeQuery(sql);
         r.next();
 
@@ -130,7 +139,8 @@ public class Database {
     }
 
     public static void getStdDev (Statement s, ResultSet r, String module) throws SQLException {
-        String sql = "SELECT stddev(ca_mark + final_exam_mark) AS stddev FROM results WHERE module_code = \"" + module +"\"";
+        System.out.println("Calling method getStdDev...");
+        sql = "SELECT stddev(ca_mark + final_exam_mark) AS stddev FROM results WHERE module_code = \"" + module +"\"";
         r = s.executeQuery(sql);
         r.next();
 
@@ -138,7 +148,7 @@ public class Database {
         double stddev  = r.getDouble("stddev");
 
         // Round deviation to 3 decimal points
-        DecimalFormat df = new DecimalFormat("#.###");
+        DecimalFormat df = new DecimalFormat("#.##");
 
         System.out.println("Standard Deviation: " + df.format(stddev));
 
