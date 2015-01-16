@@ -17,8 +17,8 @@ public class jOpenDocumentModifyTest {
         File file = new File("results.ods");
         final Sheet sheet = SpreadSheet.createFromFile(file).getSheet(0);
 
-        //System.out.println(sheet.getUsedRange().getStartPoint().toString());
-        //System.out.println(sheet.getUsedRange().getEndPoint().toString());
+        System.out.println(sheet.getUsedRange().getStartPoint().toString());
+        System.out.println(sheet.getUsedRange().getEndPoint().toString());
 
         if ( !isCorrectTemplate(sheet) ) {
             return;

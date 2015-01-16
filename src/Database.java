@@ -38,8 +38,8 @@ public class Database {
 
             // Testing methods I've created
 
-           // getAllResults(stmt,rs);
-            getAverageGrade(stmt, rs);
+             getAllResults(stmt,rs);
+            //getAverageGrade(stmt, rs);
             ////getAverageGrade(stmt, rs, "CS101");
             //getMaxGrade(stmt, rs, "CS101");
             //getMinGrade(stmt, rs, "CS101");

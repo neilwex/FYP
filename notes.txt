@@ -1,0 +1,15 @@
+Project Notes:
+
+13/01/15
+Installed MySQL and IntelliJ IDEA IDE (Ultimate Edition)
+Downloaded and installed mysql-connector-j jar
+
+14/01/15
+
+Created GitHub Account
+Linked with IntelliJ
+Organised existing Java classes into a new project folder named 'FYP'
+
+16/01/15
+
+Added info into modules table
