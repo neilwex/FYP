@@ -26,7 +26,7 @@ public class Database {
         Statement stmt = null;
         try{
             //STEP 2: Register JDBC driver
-            Class.forName("com.mysql.jdbc.Driver");
+            Class.forName(JDBC_DRIVER);
 
             //STEP 3: Open a connection
             System.out.println("Connecting to database...");
@@ -44,7 +44,7 @@ public class Database {
             //getMaxGrade(stmt, rs, "CS101");
             //getMinGrade(stmt, rs, "CS101");
             //getStdDev(stmt, rs, "CS101");
-            checkStudentGrade(stmt, rs);
+            checkGradesForSufficientCredits(stmt, rs);
 
             //STEP 6: Clean-up environment
             //rs.close();
@@ -168,19 +168,19 @@ public class Database {
 
     }
 
-    public static void checkStudentGrade (Statement s, ResultSet r) throws SQLException {
+    public static void checkGradesForSufficientCredits (Statement s, ResultSet r) throws SQLException {
 
         Scanner scanner = new Scanner(System.in);
-        String selected_student;
-        boolean validSelection = false;
+        int selected_student;
+        boolean validSelection;
         do {
             System.out.println("Please enter the student number for whom data is required:");
-            selected_student = scanner.next();
+            selected_student = scanner.nextInt();
 
             sql = "SELECT EXISTS (SELECT * FROM results WHERE student_num = " + selected_student + ");";
             r = s.executeQuery(sql);
             r.next();
-            validSelection = r.getString(1).equals("1") ? true : false;
+            validSelection = r.getString(1).equals("1");
 
         } while (! validSelection);
 
@@ -200,9 +200,83 @@ public class Database {
         }
         System.out.println("System has results for " + credits + " credits for student " + selected_student);
 
-
+        checkGrades(s,r,selected_student);
     }
 
-    //public static void
+    public static void checkGrades (Statement s, ResultSet r, int student_num) throws SQLException {
+
+
+        System.out.println("Checking grades...");
+        sql = "SELECT module_code, ca_mark, final_exam_mark FROM results WHERE student_num = " + student_num + ";";
+        r = s.executeQuery(sql);
+        boolean allPassed = true;
+        // extract data from result set
+        while(r.next()){
+            //Retrieve by column name
+            String module_code  = r.getString("module_code");
+            int ca_mark = r.getInt("ca_mark");
+            int final_exam_mark = r.getInt("final_exam_mark");
+
+            //Display values
+            System.out.print("Module Code: " + module_code);
+            System.out.print(", CS Mark: " + ca_mark);
+            System.out.print(", Final Exam Mark: " + final_exam_mark);
+            System.out.print(", Overall Grade: " + (ca_mark + final_exam_mark));
+            if ( ca_mark + final_exam_mark < 40 ) {
+                allPassed = false;
+            }
+            System.out.println(", Pass/Fail?: " + (ca_mark + final_exam_mark >= 40 ? "Pass" : "Fail" ));
+
+        }
+
+        if (! allPassed) {
+            System.out.println("Student " + student_num + " has not passed all modules");
+            checkPassByCompensation(r,s,student_num);
+        } else {
+            System.out.println("Student " + student_num + " has passed all modules");
+        }
+    }
+
+    private static void checkPassByCompensation(ResultSet r, Statement s, int student_num) throws SQLException {
+        System.out.println("Checking grades...");
+        sql = "SELECT SUM(credit_weighting) AS sum FROM modules WHERE code IN " +
+                "(SELECT module_code FROM results WHERE student_num = " + student_num + " AND ca_mark + results.final_exam_mark < 40)";
+
+        r = s.executeQuery(sql);
+        r.next();
+        int creditsFailed = r.getInt(1);
+        System.out.println("Student " + student_num + " has failed " + creditsFailed + " credits");
+        if (creditsFailed > 10 ) {
+            System.out.println("Student has failed more than 10 credits and is therefore" +
+                    " ineligible to pass the year by compensation");
+        } else {
+
+            sql = "SELECT module_code, ca_mark, final_exam_mark FROM results " +
+                    "WHERE student_num = " + student_num + " AND ca_mark + final_exam_mark < 40";
+            r = s.executeQuery(sql);
+
+            boolean passByComp = true;
+            // extract data from result set
+            while(r.next()){
+                //Retrieve by column name
+                int ca_mark = r.getInt("ca_mark");
+                int final_exam_mark = r.getInt("final_exam_mark");
+
+                //Display values
+                if ( ca_mark + final_exam_mark < 30 ) {
+                    passByComp = false;
+                    break;
+                }
+            }
+
+            if ( passByComp ) {
+                System.out.println("Student is eligible to pass the year by compensation");
+            } else {
+                System.out.println("Student is ineligible to pass the year by compensation due to receiving grade(s) below 30%");
+            }
+
+        }
+
+    }
 
 } // end class
