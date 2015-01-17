@@ -38,12 +38,13 @@ public class Database {
 
             // Testing methods I've created
 
-             getAllResults(stmt,rs);
+             //getAllResults(stmt,rs);
             //getAverageGrade(stmt, rs);
             ////getAverageGrade(stmt, rs, "CS101");
             //getMaxGrade(stmt, rs, "CS101");
             //getMinGrade(stmt, rs, "CS101");
-            getStdDev(stmt, rs, "CS101");
+            //getStdDev(stmt, rs, "CS101");
+            checkStudentGrade(stmt, rs);
 
             //STEP 6: Clean-up environment
             //rs.close();
@@ -95,8 +96,6 @@ public class Database {
             System.out.println(", Pass/Fail?: " + (ca_mark + final_exam_mark >= 40 ? "Pass" : "Fail" ));
         }
 
-        // close ResultSet
-        r.close();
     }
 
     //public static void getAverageGrade (Statement s, ResultSet r, String module) throws SQLException {
@@ -127,8 +126,6 @@ public class Database {
         String average  = r.getString("average");
         System.out.println("Overall Average: " + average);
 
-        // close ResultSet
-        r.close();
     }
 
     public static void getMaxGrade (Statement s, ResultSet r, String module) throws SQLException {
@@ -141,8 +138,6 @@ public class Database {
         String max  = r.getString("max");
         System.out.println("Highest Grade Achieved: " + max);
 
-        // close ResultSet
-        r.close();
     }
 
     public static void getMinGrade (Statement s, ResultSet r, String module) throws SQLException {
@@ -155,8 +150,6 @@ public class Database {
         String min  = r.getString("min");
         System.out.println("Lowest Grade Achieved: " + min);
 
-        // close ResultSet
-        r.close();
     }
 
     public static void getStdDev (Statement s, ResultSet r, String module) throws SQLException {
@@ -173,8 +166,43 @@ public class Database {
 
         System.out.println("Standard Deviation: " + df.format(stddev));
 
-        // close ResultSet
-        r.close();
     }
+
+    public static void checkStudentGrade (Statement s, ResultSet r) throws SQLException {
+
+        Scanner scanner = new Scanner(System.in);
+        String selected_student;
+        boolean validSelection = false;
+        do {
+            System.out.println("Please enter the student number for whom data is required:");
+            selected_student = scanner.next();
+
+            sql = "SELECT EXISTS (SELECT * FROM results WHERE student_num = " + selected_student + ");";
+            r = s.executeQuery(sql);
+            r.next();
+            validSelection = r.getString(1).equals("1") ? true : false;
+
+        } while (! validSelection);
+
+        System.out.println("Getting student grades information...");
+
+        sql = "SELECT SUM(credit_weighting) AS sum FROM modules WHERE code IN " +
+                "(SELECT module_code FROM results WHERE student_num = " + selected_student + ")";
+        r = s.executeQuery(sql);
+        r.next();
+        int credits = r.getInt(1);
+        if (credits == 60) {
+            System.out.println("Student grades received for correct number of credits");
+        } else if (credits < 60) {
+            System.out.println("Insufficient grades received for student");
+        } else {
+            System.out.println("Student appears to have grades for more than 60 credits");
+        }
+        System.out.println("System has results for " + credits + " credits for student " + selected_student);
+
+
+    }
+
+    //public static void
 
 } // end class
